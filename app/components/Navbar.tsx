@@ -3,59 +3,59 @@
 import { useState, useEffect } from 'react';
 
 export default function Navbar() {
-    const [scrolled, setScrolled] = useState(false);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 50);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-    const navLinks = [
-        { href: '#home', label: 'Trang chủ' },
-        { href: '#about', label: 'Giới thiệu' },
-        { href: '#skills', label: 'Kỹ năng' },
-        { href: '#projects', label: 'Dự án' },
-        { href: '#contact', label: 'Liên hệ' },
-    ];
+  const navLinks = [
+    { href: '#home', label: 'Trang chủ' },
+    { href: '#about', label: 'Giới thiệu' },
+    { href: '#skills', label: 'Kỹ năng' },
+    { href: '#projects', label: 'Dự án' },
+    { href: '#contact', label: 'Liên hệ' },
+  ];
 
-    return (
-        <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
-            <div className="nav-container">
-                <a href="#home" className="logo">
-                    <span className="logo-bracket">&lt;</span>
-                    <span className="logo-text">Young</span>
-                    <span className="logo-highlight">Coder</span>
-                    <span className="logo-bracket">/&gt;</span>
-                </a>
+  return (
+    <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
+      <div className="nav-container">
+        <a href="#home" className="logo">
+          <span className="logo-bracket">&lt;</span>
+          <span className="logo-text">Young</span>
+          <span className="logo-highlight">Coder</span>
+          <span className="logo-bracket">/&gt;</span>
+        </a>
 
-                <div className={`nav-links ${mobileMenuOpen ? 'active' : ''}`}>
-                    {navLinks.map((link) => (
-                        <a
-                            key={link.href}
-                            href={link.href}
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            {link.label}
-                        </a>
-                    ))}
-                </div>
+        <div className={`nav-links ${mobileMenuOpen ? 'active' : ''}`}>
+          {navLinks.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
 
-                <button
-                    className={`mobile-menu-btn ${mobileMenuOpen ? 'active' : ''}`}
-                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    aria-label="Toggle menu"
-                >
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
+        <button
+          className={`mobile-menu-btn ${mobileMenuOpen ? 'active' : ''}`}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
 
-            <style jsx>{`
+      <style jsx>{`
         .navbar {
           position: fixed;
           top: 0;
@@ -187,11 +187,17 @@ export default function Navbar() {
             padding: 40px 20px;
             gap: 30px;
             transform: translateY(-150%);
-            transition: transform 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
           }
 
           .nav-links.active {
             transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
           }
 
           .nav-links a {
@@ -199,6 +205,6 @@ export default function Navbar() {
           }
         }
       `}</style>
-        </nav>
-    );
+    </nav>
+  );
 }
