@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 
 export default function Navbar() {
+  const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
@@ -23,7 +25,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
+    <nav className={`navbar ${scrolled ? 'scrolled' : ''} ${mounted ? 'mounted' : ''}`}>
       <div className="nav-container">
         <a href="#home" className="logo">
           <span className="logo-bracket">&lt;</span>
@@ -64,6 +66,11 @@ export default function Navbar() {
           z-index: 1000;
           padding: 20px 0;
           transition: all 0.3s ease;
+          opacity: 0;
+        }
+
+        .navbar.mounted {
+          opacity: 1;
         }
 
         .navbar.scrolled {
