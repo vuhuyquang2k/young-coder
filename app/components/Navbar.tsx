@@ -65,15 +65,17 @@ export default function Navbar() {
           right: 0;
           z-index: 1000;
           padding: 20px 0;
-          transition: all 0.3s ease;
+          transition: opacity 0.3s ease, background 0.3s ease, padding 0.3s ease;
           opacity: 0;
+          visibility: hidden;
         }
 
         .navbar.mounted {
           opacity: 1;
+          visibility: visible;
         }
 
-        .navbar.scrolled {
+        .navbar.mounted.scrolled {
           background: rgba(10, 10, 15, 0.9);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);

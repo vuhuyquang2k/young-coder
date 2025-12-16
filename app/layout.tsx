@@ -31,7 +31,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="vi">
-            <body>
+            <body style={{ backgroundColor: '#0a0a0f' }}>
                 <div className="bg-grid" />
                 {children}
             </body>

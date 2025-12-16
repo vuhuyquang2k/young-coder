@@ -198,11 +198,13 @@ export default developer;`}
           width: 100%;
           gap: 60px;
           opacity: 0;
+          visibility: hidden;
           transition: opacity 0.3s ease;
         }
 
         .hero.mounted {
           opacity: 1;
+          visibility: visible;
         }
 
         .hero-content {
