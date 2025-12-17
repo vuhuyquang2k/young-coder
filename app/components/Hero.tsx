@@ -3,16 +3,10 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 
 export default function Hero() {
-  const [mounted, setMounted] = useState(false);
   const [displayText, setDisplayText] = useState('');
   const [currentRole, setCurrentRole] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Prevent hydration flash
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const roles = [
     'Full-Stack Developer',
@@ -59,7 +53,7 @@ export default function Hero() {
   }, [displayText, currentRole, isDeleting, typeWriter]);
 
   return (
-    <section id="home" className={`hero ${mounted ? 'mounted' : ''}`}>
+    <section id="home" className="hero">
       {/* Animated orbs */}
       <div className="orb orb-1"></div>
       <div className="orb orb-2"></div>
@@ -197,14 +191,6 @@ export default developer;`}
           overflow: hidden;
           width: 100%;
           gap: 60px;
-          opacity: 0;
-          visibility: hidden;
-          transition: opacity 0.3s ease;
-        }
-
-        .hero.mounted {
-          opacity: 1;
-          visibility: visible;
         }
 
         .hero-content {

@@ -3,15 +3,15 @@
 import { useState, useEffect } from 'react';
 
 export default function Navbar() {
-  const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
+    // Check initial scroll position
+    handleScroll();
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -25,7 +25,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className={`navbar ${scrolled ? 'scrolled' : ''} ${mounted ? 'mounted' : ''}`}>
+    <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="nav-container">
         <a href="#home" className="logo">
           <span className="logo-bracket">&lt;</span>
@@ -65,17 +65,10 @@ export default function Navbar() {
           right: 0;
           z-index: 1000;
           padding: 20px 0;
-          transition: opacity 0.3s ease, background 0.3s ease, padding 0.3s ease;
-          opacity: 0;
-          visibility: hidden;
+          transition: background 0.3s ease, padding 0.3s ease, backdrop-filter 0.3s ease;
         }
 
-        .navbar.mounted {
-          opacity: 1;
-          visibility: visible;
-        }
-
-        .navbar.mounted.scrolled {
+        .navbar.scrolled {
           background: rgba(10, 10, 15, 0.9);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
