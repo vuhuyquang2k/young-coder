@@ -1,6 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Fonts are now loaded via Next.js font optimization in layout.tsx */
+/* This prevents FOUC (Flash of Unstyled Content) */
 
 :root {
+    /* Font variables from Next.js */
+    --font-primary: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: var(--font-jetbrains), 'JetBrains Mono', monospace;
     /* AI-inspired color palette */
     --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -43,7 +47,7 @@ html {
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: var(--font-primary);
     background: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
