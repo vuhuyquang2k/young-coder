@@ -20,7 +20,7 @@ export default function Navbar() {
     { href: '#home', label: 'Trang chủ' },
     { href: '#about', label: 'Giới thiệu' },
     { href: '#skills', label: 'Kỹ năng' },
-    { href: '#projects', label: 'Dự án' },
+    { href: '#blog', label: 'Blog' },
     { href: '#contact', label: 'Liên hệ' },
   ];
 
