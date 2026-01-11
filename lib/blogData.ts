@@ -1,6 +1,5 @@
 // Blog posts data
 export const categoryColors: Record<string, string> = {
-    'Laravel': '#FF2D20',
     'React': '#61DAFB',
     'Spring Boot': '#6DB33F',
     'DevOps': '#FF6B35',
@@ -24,129 +23,6 @@ export interface BlogPost {
 export const blogPosts: BlogPost[] = [
     {
         id: 1,
-        slug: 'xay-dung-rest-api-voi-laravel',
-        title: 'Xây dựng REST API với Laravel và Best Practices',
-        excerpt: 'Hướng dẫn chi tiết cách xây dựng REST API chuẩn với Laravel.',
-        category: 'Laravel',
-        date: '10/01/2026',
-        readTime: '8 phút đọc',
-        image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=400&fit=crop',
-        tags: ['Laravel', 'API', 'PHP'],
-        featured: true,
-        content: `
-## Giới thiệu
-
-REST API là phương thức phổ biến để giao tiếp giữa frontend và backend. Laravel cung cấp các công cụ mạnh mẽ để xây dựng API một cách nhanh chóng và bảo mật.
-
-## 1. Cấu trúc thư mục API
-
-\`\`\`
-app/
-├── Http/
-│   ├── Controllers/
-│   │   └── Api/
-│   │       └── UserController.php
-│   ├── Requests/
-│   │   └── StoreUserRequest.php
-│   └── Resources/
-│       └── UserResource.php
-\`\`\`
-
-## 2. Tạo API Controller
-
-\`\`\`php
-<?php
-namespace App\\Http\\Controllers\\Api;
-
-use App\\Http\\Controllers\\Controller;
-use App\\Http\\Resources\\UserResource;
-use App\\Models\\User;
-
-class UserController extends Controller
-{
-    public function index()
-    {
-        return UserResource::collection(User::paginate(15));
-    }
-    
-    public function show(User $user)
-    {
-        return new UserResource($user);
-    }
-}
-\`\`\`
-
-## 3. API Resources
-
-API Resources giúp transform data trước khi trả về client:
-
-\`\`\`php
-<?php
-namespace App\\Http\\Resources;
-
-use Illuminate\\Http\\Resources\\Json\\JsonResource;
-
-class UserResource extends JsonResource
-{
-    public function toArray($request)
-    {
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'created_at' => $this->created_at->format('d/m/Y'),
-        ];
-    }
-}
-\`\`\`
-
-## 4. Request Validation
-
-\`\`\`php
-<?php
-namespace App\\Http\\Requests;
-
-use Illuminate\\Foundation\\Http\\FormRequest;
-
-class StoreUserRequest extends FormRequest
-{
-    public function rules()
-    {
-        return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:8|confirmed',
-        ];
-    }
-}
-\`\`\`
-
-## 5. Error Handling
-
-Tạo response format nhất quán cho errors:
-
-\`\`\`php
-// app/Exceptions/Handler.php
-public function render($request, Throwable $e)
-{
-    if ($request->expectsJson()) {
-        return response()->json([
-            'success' => false,
-            'message' => $e->getMessage(),
-        ], $this->getStatusCode($e));
-    }
-    
-    return parent::render($request, $e);
-}
-\`\`\`
-
-## Kết luận
-
-Laravel cung cấp bộ công cụ hoàn chỉnh để xây dựng REST API chuyên nghiệp. Áp dụng các best practices trên sẽ giúp code của bạn sạch, dễ maintain và scale.
-    `
-    },
-    {
-        id: 2,
         slug: 'react-hooks-tu-co-ban-den-nang-cao',
         title: 'React Hooks: Từ cơ bản đến nâng cao',
         excerpt: 'Tìm hiểu sâu về React Hooks - useState, useEffect, useContext, useMemo.',
@@ -279,7 +155,7 @@ React Hooks giúp code gọn gàng hơn và dễ tái sử dụng logic. Hãy b�
     `
     },
     {
-        id: 3,
+        id: 2,
         slug: 'spring-boot-microservices-docker',
         title: 'Spring Boot Microservices với Docker',
         excerpt: 'Triển khai kiến trúc microservices với Spring Boot và Docker.',
@@ -288,7 +164,7 @@ React Hooks giúp code gọn gàng hơn và dễ tái sử dụng logic. Hãy b�
         readTime: '15 phút đọc',
         image: 'https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=800&h=400&fit=crop',
         tags: ['Spring Boot', 'Docker', 'Microservices'],
-        featured: false,
+        featured: true,
         content: `
 ## Microservices là gì?
 
@@ -388,7 +264,7 @@ Docker giúp đơn giản hóa việc deploy microservices. Mỗi service chạy
     `
     },
     {
-        id: 4,
+        id: 3,
         slug: 'cicd-pipeline-github-actions',
         title: 'CI/CD Pipeline với GitHub Actions',
         excerpt: 'Hướng dẫn thiết lập CI/CD pipeline tự động với GitHub Actions.',
@@ -493,7 +369,7 @@ GitHub Actions giúp automate workflow dễ dàng, tích hợp trực tiếp v�
     `
     },
     {
-        id: 5,
+        id: 4,
         slug: 'vscode-extensions-khong-the-thieu',
         title: '10 VS Code Extensions không thể thiếu',
         excerpt: 'Tổng hợp các extension VS Code giúp tăng năng suất coding.',
@@ -559,107 +435,6 @@ code --install-extension eamodio.gitlens
 ## Kết luận
 
 Những extensions trên là must-have cho mọi web developer. Hãy thử và tùy chỉnh theo workflow của bạn!
-    `
-    },
-    {
-        id: 6,
-        slug: 'authentication-laravel-sanctum',
-        title: 'Authentication với Laravel Sanctum',
-        excerpt: 'Cách implement authentication cho SPA và Mobile App với Laravel Sanctum.',
-        category: 'Laravel',
-        date: '10/12/2025',
-        readTime: '7 phút đọc',
-        image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&h=400&fit=crop',
-        tags: ['Laravel', 'Auth', 'Security'],
-        featured: false,
-        content: `
-## Laravel Sanctum là gì?
-
-Sanctum là package authentication đơn giản cho SPAs, mobile apps và API tokens.
-
-## 1. Cài đặt
-
-\`\`\`bash
-composer require laravel/sanctum
-php artisan vendor:publish --provider="Laravel\\Sanctum\\SanctumServiceProvider"
-php artisan migrate
-\`\`\`
-
-## 2. Cấu hình User Model
-
-\`\`\`php
-use Laravel\\Sanctum\\HasApiTokens;
-
-class User extends Authenticatable
-{
-    use HasApiTokens, HasFactory, Notifiable;
-}
-\`\`\`
-
-## 3. Login API
-
-\`\`\`php
-public function login(Request $request)
-{
-    $credentials = $request->validate([
-        'email' => 'required|email',
-        'password' => 'required'
-    ]);
-    
-    if (!Auth::attempt($credentials)) {
-        return response()->json([
-            'message' => 'Invalid credentials'
-        ], 401);
-    }
-    
-    $user = Auth::user();
-    $token = $user->createToken('auth-token')->plainTextToken;
-    
-    return response()->json([
-        'user' => $user,
-        'token' => $token
-    ]);
-}
-\`\`\`
-
-## 4. Protected Routes
-
-\`\`\`php
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
-    
-    Route::post('/logout', function (Request $request) {
-        $request->user()->currentAccessToken()->delete();
-        return response()->json(['message' => 'Logged out']);
-    });
-});
-\`\`\`
-
-## 5. Frontend Integration
-
-\`\`\`javascript
-// Login
-const response = await fetch('/api/login', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email, password })
-});
-const { token } = await response.json();
-localStorage.setItem('token', token);
-
-// Authenticated request
-fetch('/api/user', {
-  headers: {
-    'Authorization': \`Bearer \${localStorage.getItem('token')}\`
-  }
-});
-\`\`\`
-
-## Kết luận
-
-Sanctum là giải pháp đơn giản, hiệu quả cho authentication trong Laravel. Phù hợp cho cả SPA và mobile apps.
     `
     }
 ];

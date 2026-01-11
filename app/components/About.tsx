@@ -72,7 +72,6 @@ export default function About() {
               <span className="tech-label">Công nghệ yêu thích:</span>
               <div className="tech-tags">
                 <span className="tech-tag spring">Spring Boot</span>
-                <span className="tech-tag laravel">Laravel</span>
                 <span className="tech-tag react">React</span>
                 <span className="tech-tag next">Next.js</span>
                 <span className="tech-tag vue">Vue.js</span>
@@ -254,12 +253,6 @@ export default function About() {
           color: #6cb52d;
           border-color: rgba(108, 181, 45, 0.3);
           background: rgba(108, 181, 45, 0.1);
-        }
-
-        .tech-tag.laravel {
-          color: #ff2d20;
-          border-color: rgba(255, 45, 32, 0.3);
-          background: rgba(255, 45, 32, 0.1);
         }
 
         .tech-tag.react {

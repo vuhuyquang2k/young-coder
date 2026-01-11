@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { blogPosts, categoryColors } from '@/lib/blogData';
 
 // Blog categories
-const categories = ['Tất cả', 'Laravel', 'React', 'Spring Boot', 'DevOps', 'Tips & Tricks'];
+const categories = ['Tất cả', 'React', 'Spring Boot', 'DevOps', 'Tips & Tricks'];
 
 export default function Blog() {
     const [activeCategory, setActiveCategory] = useState('Tất cả');

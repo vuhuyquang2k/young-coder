@@ -11,7 +11,6 @@ export default function Hero() {
   const roles = [
     'Full-Stack Developer',
     'Spring Boot Expert',
-    'Laravel Developer',
     'React Enthusiast',
     'Next.js Builder',
     'Vue.js Developer'
@@ -79,7 +78,7 @@ export default function Hero() {
 
         <p className="hero-description">
           Lập trình viên đam mê xây dựng các ứng dụng web hiện đại và mạnh mẽ.
-          Chuyên về <span className="highlight">Spring Boot</span>, <span className="highlight">Laravel</span>, <span className="highlight">ReactJS</span>, <span className="highlight">NextJS</span> và <span className="highlight">VueJS</span>.
+          Chuyên về <span className="highlight">Spring Boot</span>, <span className="highlight">ReactJS</span>, <span className="highlight">NextJS</span> và <span className="highlight">VueJS</span>.
         </p>
 
         <div className="hero-cta">
@@ -134,7 +133,6 @@ export default function Hero() {
   title: "Full-Stack Developer",
   skills: [
     "Spring Boot",
-    "Laravel",
     "ReactJS",
     "NextJS",
     "VueJS"
@@ -168,13 +166,6 @@ export default developer;`}
             <svg viewBox="0 0 32 32" fill="none">
               <path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2zm0 25.5c-6.351 0-11.5-5.149-11.5-11.5S9.649 4.5 16 4.5 27.5 9.649 27.5 16 22.351 27.5 16 27.5z" fill="#6cb52d" />
               <path d="M21.5 11.5c-1.5-1.5-4-1.5-5.5 0l-5.5 5.5c-1.5 1.5-1.5 4 0 5.5s4 1.5 5.5 0l5.5-5.5c1.5-1.5 1.5-4 0-5.5z" fill="#6cb52d" />
-            </svg>
-          </div>
-          <div className="floating-icon laravel">
-            <svg viewBox="0 0 32 32" fill="none">
-              <path d="M6.5 10.5l7 4v8l-7-4v-8zm0 0l7-4 7 4-7 4-7-4z" stroke="#FF2D20" strokeWidth="2" fill="none" />
-              <path d="M13.5 14.5l7-4v8l-7 4v-8z" stroke="#FF2D20" strokeWidth="2" fill="none" />
-              <path d="M20.5 18.5l5-3v6l-5 3v-6z" stroke="#FF2D20" strokeWidth="2" fill="none" />
             </svg>
           </div>
         </div>
@@ -399,12 +390,6 @@ export default developer;`}
           top: 50%;
           right: -50px;
           animation-delay: -3s;
-        }
-
-        .floating-icon.laravel {
-          bottom: 50px;
-          left: -40px;
-          animation-delay: -4.5s;
         }
 
         @keyframes pulse {
