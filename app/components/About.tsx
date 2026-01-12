@@ -31,7 +31,7 @@ export default function About() {
             </div>
 
             <p className="about-description">
-              Với hơn <span className="highlight">4 năm kinh nghiệm</span> trong ngành phát triển phần mềm,
+              Với hơn <span className="highlight">3 năm kinh nghiệm</span> trong ngành phát triển phần mềm,
               tôi chuyên về xây dựng các ứng dụng web từ backend đến frontend. Tôi tin rằng code không chỉ
               là việc giải quyết vấn đề, mà còn là nghệ thuật tạo ra trải nghiệm người dùng tuyệt vời.
             </p>

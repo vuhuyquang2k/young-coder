@@ -21,9 +21,10 @@ const LinkedInIcon = () => (
     </svg>
 );
 
-const FacebookIcon = () => (
+const ZaloIcon = () => (
     <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+        <path d="M21.5 10.5c0-4.694-4.254-8.5-9.5-8.5S2.5 5.806 2.5 10.5c0 2.597 1.305 4.91 3.393 6.456-.16.89-.636 2.455-.732 2.76-.11.35.114.34.238.257.098-.065 1.556-.99 2.16-1.38.448.114.913.177 1.391.177 5.246 0 9.5-3.806 9.5-8.5z" />
+        <path d="M12.5 14.5h-4v-1l2.5-2.5h-2.5v-1h4v1l-2.5 2.5h2.5v1z" />
     </svg>
 );
 
@@ -65,7 +66,7 @@ export default function Contact() {
         { href: 'mailto:quangvh.technical@gmail.com', icon: <EmailIcon />, label: 'quangvh.technical@gmail.com', color: '#EA4335' },
         { href: 'https://github.com/vuhuyquang2k', icon: <GitHubIcon />, label: 'github.com/vuhuyquang2k', color: '#ffffff' },
         { href: '#', icon: <LinkedInIcon />, label: 'LinkedIn (Coming soon)', color: '#0A66C2' },
-        { href: 'https://facebook.com/homie2100', icon: <FacebookIcon />, label: 'facebook.com/homie2100', color: '#1877F2' },
+        { href: 'https://zalo.me/0344396798', icon: <ZaloIcon />, label: 'Zalo: 0344396798', color: '#0068FF' },
     ];
 
     return (

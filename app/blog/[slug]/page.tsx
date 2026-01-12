@@ -85,9 +85,10 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
         <div className="share-section">
           <span>Chia sẻ bài viết:</span>
           <div className="share-buttons">
-            <button className="share-btn facebook">
+            <button className="share-btn zalo" onClick={() => window.open('https://sp.zalo.me/share/base?url=' + encodeURIComponent(window.location.href), '_blank')}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                <path d="M21.5 10.5c0-4.694-4.254-8.5-9.5-8.5S2.5 5.806 2.5 10.5c0 2.597 1.305 4.91 3.393 6.456-.16.89-.636 2.455-.732 2.76-.11.35.114.34.238.257.098-.065 1.556-.99 2.16-1.38.448.114.913.177 1.391.177 5.246 0 9.5-3.806 9.5-8.5z" />
+                <path d="M12.5 14.5h-4v-1l2.5-2.5h-2.5v-1h4v1l-2.5 2.5h2.5v1z" />
               </svg>
             </button>
             <button className="share-btn twitter">
@@ -347,7 +348,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
         .share-btn:hover {
           transform: translateY(-3px);
         }
-        .share-btn.facebook:hover { background: #1877f2; border-color: #1877f2; }
+        .share-btn.zalo:hover { background: #0068ff; border-color: #0068ff; }
         .share-btn.twitter:hover { background: #000; border-color: #000; }
         .share-btn.linkedin:hover { background: #0a66c2; border-color: #0a66c2; }
 
@@ -430,13 +431,57 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
 
 // Helper to format markdown-like content to HTML
 function formatContent(content: string): string {
-  return content
-    .replace(/## (.*)/g, '<h2>$1</h2>')
-    .replace(/### (.*)/g, '<h3>$1</h3>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/^/, '<p>')
-    .replace(/$/, '</p>');
+  // Function to escape HTML entities
+  const escapeHtml = (text: string): string => {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
+  let result = content;
+
+  // Handle fenced code blocks (```) - extract and escape first
+  result = result.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) => {
+    return `<pre><code class="language-${lang || 'text'}">${escapeHtml(code.trim())}</code></pre>`;
+  });
+
+  // Handle inline code (`)
+  result = result.replace(/`([^`]+)`/g, (_, code) => {
+    return `<code>${escapeHtml(code)}</code>`;
+  });
+
+  // Handle headers (must be at start of line)
+  result = result.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+  result = result.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+
+  // Handle bold text
+  result = result.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+  // Handle unordered lists
+  result = result.replace(/^- (.*)$/gm, '<li>$1</li>');
+  result = result.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+
+  // Handle line breaks - convert single newlines to <br> and double to paragraph breaks
+  result = result
+    .split('\n\n')
+    .map(paragraph => {
+      // Don't wrap already-wrapped elements
+      if (paragraph.trim().startsWith('<h') ||
+        paragraph.trim().startsWith('<pre') ||
+        paragraph.trim().startsWith('<ul') ||
+        paragraph.trim().startsWith('<li')) {
+        return paragraph;
+      }
+      // Wrap regular paragraphs
+      if (paragraph.trim()) {
+        return `<p>${paragraph.replace(/\n/g, '<br>')}</p>`;
+      }
+      return '';
+    })
+    .join('\n');
+
+  return result;
 }

@@ -82,11 +82,12 @@ export default function Hero() {
         </p>
 
         <div className="hero-cta">
-          <a href="#projects" className="btn btn-primary">
+          <a href="#blog" className="btn btn-primary">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 5v14M5 12l7 7 7-7" />
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
             </svg>
-            Xem dự án
+            Xem bài viết
           </a>
           <a href="#contact" className="btn btn-outline">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -99,17 +100,17 @@ export default function Hero() {
 
         <div className="hero-stats">
           <div className="stat">
-            <span className="stat-number">4+</span>
+            <span className="stat-number">3+</span>
             <span className="stat-label">Năm kinh nghiệm</span>
           </div>
           <div className="stat-divider"></div>
           <div className="stat">
-            <span className="stat-number">20+</span>
+            <span className="stat-number">10+</span>
             <span className="stat-label">Dự án hoàn thành</span>
           </div>
           <div className="stat-divider"></div>
           <div className="stat">
-            <span className="stat-number">5+</span>
+            <span className="stat-number">4+</span>
             <span className="stat-label">Công nghệ thành thạo</span>
           </div>
         </div>
@@ -418,6 +419,10 @@ export default developer;`}
         }
 
         @media (max-width: 600px) {
+          .hero {
+            padding: 120px 16px 60px;
+          }
+
           .hero-stats {
             gap: 20px;
           }
