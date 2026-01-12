@@ -348,24 +348,42 @@ function VideoPlayer() {
 
 Custom Hooks là cách mạnh mẽ nhất để chia sẻ logic giữa các component.
 
-### useLocalStorage Hook
+### useSessionStorage Hook (Thay thế localStorage)
+
+⚠️ **LƯU Ý QUAN TRỌNG**: localStorage không hoạt động trong môi trường Claude.ai artifacts. Trong production, bạn có thể sử dụng localStorage, nhưng khi test trên Claude.ai, hãy dùng sessionStorage hoặc in-memory storage.
 
 \`\`\`jsx
+// ✅ Phiên bản sử dụng React state (hoạt động mọi nơi)
+function useInMemoryStorage(key, initialValue) {
+  const [value, setValue] = useState(initialValue);
+  
+  return [value, setValue];
+}
+
+// ✅ Phiên bản cho production (sử dụng localStorage)
 function useLocalStorage(key, initialValue) {
   // Lazy initialization để tránh đọc localStorage mỗi lần render
   const [value, setValue] = useState(() => {
+    // Kiểm tra xem có phải môi trường browser không
+    if (typeof window === 'undefined') {
+      return initialValue;
+    }
+    
     try {
-      const saved = localStorage.getItem(key);
+      const saved = window.localStorage.getItem(key);
       return saved !== null ? JSON.parse(saved) : initialValue;
     } catch {
+      console.error('Error reading from localStorage');
       return initialValue;
     }
   });
   
   // Sync với localStorage khi value thay đổi
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     try {
-      localStorage.setItem(key, JSON.stringify(value));
+      window.localStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
       console.error('Error saving to localStorage:', error);
     }
@@ -376,14 +394,20 @@ function useLocalStorage(key, initialValue) {
 
 // Sử dụng
 function Settings() {
-  const [theme, setTheme] = useLocalStorage('theme', 'light');
-  const [language, setLanguage] = useLocalStorage('lang', 'vi');
+  // Trong Claude.ai artifacts, dùng useInMemoryStorage
+  // Trong production, dùng useLocalStorage
+  const [theme, setTheme] = useInMemoryStorage('theme', 'light');
+  const [language, setLanguage] = useInMemoryStorage('lang', 'vi');
   
   return (
     <div>
       <select value={theme} onChange={e => setTheme(e.target.value)}>
         <option value="light">Sáng</option>
         <option value="dark">Tối</option>
+      </select>
+      <select value={language} onChange={e => setLanguage(e.target.value)}>
+        <option value="vi">Tiếng Việt</option>
+        <option value="en">English</option>
       </select>
     </div>
   );
@@ -455,6 +479,7 @@ React Hooks là công cụ mạnh mẽ giúp viết React code hiệu quả hơn
 - Sử dụng ESLint plugin eslint-plugin-react-hooks để phát hiện lỗi
 - Không lạm dụng useMemo/useCallback - chỉ dùng khi thực sự cần
 - Tách logic phức tạp thành Custom Hooks riêng
+- Khi deploy lên môi trường khác nhau, cần điều chỉnh storage strategy phù hợp
     `
   },
   {
