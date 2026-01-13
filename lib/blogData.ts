@@ -1206,7 +1206,7 @@ Hãy thực hành triển khai từng phần một và test kỹ trước khi đ
     title: 'CI/CD Pipeline với GitHub Actions',
     excerpt: 'Hướng dẫn từng bước thiết lập CI/CD pipeline tự động hóa với GitHub Actions cho dự án thực tế.',
     category: 'DevOps',
-    date: '20/12/2025',
+    date: '20/12/2024',
     readTime: '18 phút đọc',
     image: 'https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=800&h=400&fit=crop',
     tags: ['DevOps', 'CI/CD', 'GitHub'],
@@ -1222,31 +1222,43 @@ GitHub Actions là platform CI/CD tích hợp sẵn trong GitHub, cho phép bạ
 - **Marketplace phong phú**: Hàng nghìn actions có sẵn
 - **Matrix builds**: Test trên nhiều OS/version cùng lúc
 - **Secrets management**: Quản lý credentials an toàn
-- **Free tier hào phóng**: 2000 phút/tháng cho public repos
+- **Free tier hào phóng**: 2000 phút/tháng cho public repos, 3000 phút cho Pro
 
-## 1. Cấu trúc cơ bản
+### Khái niệm cơ bản
+
+- **Workflow**: File YAML định nghĩa automation process
+- **Job**: Tập hợp các steps chạy trên cùng runner
+- **Step**: Một task đơn lẻ (command hoặc action)
+- **Action**: Reusable unit có thể dùng trong nhiều workflows
+- **Runner**: Server thực thi workflow (GitHub-hosted hoặc self-hosted)
+
+## 1. Cấu trúc Workflow cơ bản
 
 ### Tạo Workflow File
 
-Tạo file tại .github/workflows/ci.yml:
+Tạo file tại \`.github/workflows/ci.yml\`:
 
-\`\`\`yaml
+\\\`\\\`\\\`yaml
 name: CI/CD Pipeline
 
+# Kích hoạt workflow
 on:
   push:
     branches: [main, develop]
   pull_request:
     branches: [main]
-  workflow_dispatch:
+  workflow_dispatch:  # Cho phép chạy thủ công
 
+# Biến môi trường global
 env:
   NODE_VERSION: '20'
+  REGISTRY: ghcr.io
 
 jobs:
   lint:
-    name: Lint & Format
+    name: Lint & Format Check
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -1254,7 +1266,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: \\\${{ env.NODE_VERSION }}
+          cache: 'npm'
           
       - name: Install dependencies
         run: npm ci
@@ -1269,63 +1282,86 @@ jobs:
         run: npm run typecheck
 
   test:
-    name: Unit Tests
+    name: Unit & Integration Tests
     runs-on: ubuntu-latest
     needs: lint
+    
     strategy:
       matrix:
         node-version: [18, 20, 22]
+      fail-fast: false  # Tiếp tục test các version khác nếu 1 version fail
+    
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Node.js
+      - name: Setup Node.js \\\${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: \\\${{ matrix.node-version }}
+          cache: 'npm'
           
       - name: Install dependencies
         run: npm ci
         
-      - name: Run tests
-        run: npm test
+      - name: Run tests with coverage
+        run: npm run test:coverage
+        
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        if: matrix.node-version == 20
+        with:
+          token: \\\${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          fail_ci_if_error: true
 
   build:
-    name: Build
+    name: Build Application
     runs-on: ubuntu-latest
     needs: [lint, test]
+    
     steps:
       - uses: actions/checkout@v4
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: \\\${{ env.NODE_VERSION }}
+          cache: 'npm'
           
       - name: Install dependencies
         run: npm ci
         
       - name: Build application
         run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: \\\${{ secrets.API_URL }}
         
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-output
-          path: .next/
+          path: |
+            .next/
+            public/
           retention-days: 7
-\`\`\`
+          if-no-files-found: error
+\\\`\\\`\\\`
 
 ## 2. Deploy to Vercel
 
-\`\`\`yaml
+### Production Deployment
+
+\\\`\\\`\\\`yaml
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
     environment:
       name: production
       url: https://example.com
+    
     steps:
       - uses: actions/checkout@v4
       
@@ -1333,50 +1369,114 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-output
-          path: .next/
           
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
         with:
-          vercel-token: vercel_token_here
-          vercel-org-id: org_id_here
-          vercel-project-id: project_id_here
+          vercel-token: \\\${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: \\\${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: \\\${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: '--prod'
-\`\`\`
+          
+      - name: Comment PR with deployment URL
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: \\\${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Deployed to production: https://example.com'
+            })
 
-## 3. Cấu hình Secrets
+  deploy-preview:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'pull_request'
+    
+    environment:
+      name: preview
+      url: https://preview-\\\${{ github.event.pull_request.number }}.example.com
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy Preview to Vercel
+        uses: amondnet/vercel-action@v25
+        id: deploy
+        with:
+          vercel-token: \\\${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: \\\${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: \\\${{ secrets.VERCEL_PROJECT_ID }}
+          
+      - name: Comment PR with preview URL
+        uses: actions/github-script@v7
+        with:
+          github-token: \\\${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🚀 Preview deployed: \\\${{ steps.deploy.outputs.preview-url }}'
+            })
+\\\`\\\`\\\`
+
+## 3. Cấu hình Secrets và Environments
 
 ### Thêm Secrets trong GitHub
 
-1. Vào **Settings** > **Secrets and variables** > **Actions**
-2. Click **New repository secret**
-3. Thêm các secrets cần thiết:
+**Repository Secrets** (Settings > Secrets and variables > Actions):
 
-- VERCEL_TOKEN
-- VERCEL_ORG_ID
-- VERCEL_PROJECT_ID
-- SLACK_WEBHOOK
+\\\`\\\`\\\`
+VERCEL_TOKEN          # Token từ Vercel account settings
+VERCEL_ORG_ID         # Org ID từ Vercel
+VERCEL_PROJECT_ID     # Project ID từ Vercel  
+CODECOV_TOKEN         # Token từ Codecov
+SLACK_WEBHOOK         # Webhook URL từ Slack
+DATABASE_URL          # Connection string cho database
+API_KEY               # API keys các dịch vụ external
+\\\`\\\`\\\`
 
-### Sử dụng Environments
+### Cấu hình Environments
 
-Tạo environments với protection rules:
+**Settings > Environments** - Tạo các environments:
 
-Cấu hình trong **Settings** > **Environments**:
-- Required reviewers: Yêu cầu approve trước khi deploy
-- Wait timer: Delay trước khi deploy
-- Deployment branches: Giới hạn branches có thể deploy
+**Production Environment:**
+- Required reviewers: 2 người (team leads)
+- Wait timer: 5 phút
+- Deployment branches: Chỉ main branch
+- Environment secrets: Production-specific keys
+
+**Staging Environment:**
+- Required reviewers: 1 người
+- Deployment branches: main, develop
+- Environment secrets: Staging keys
+
+**Preview Environment:**
+- No restrictions
+- Auto-deploy cho mọi PR
 
 ## 4. Docker Build & Push
 
 ### Workflow cho Docker
 
-\`\`\`yaml
-name: Docker Build
+\\\`\\\`\\\`yaml
+name: Docker Build & Push
 
 on:
   push:
+    branches: [main, develop]
+    tags: ['v*.*.*']
+  pull_request:
     branches: [main]
-    tags: ['v*']
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: \\\${{ github.repository }}
 
 jobs:
   build-and-push:
@@ -1386,57 +1486,321 @@ jobs:
       packages: write
       
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
       
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         
-      - name: Login to GitHub Container Registry
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: github_actor
-          password: github_token
+          registry: \\\${{ env.REGISTRY }}
+          username: \\\${{ github.actor }}
+          password: \\\${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: \\\${{ env.REGISTRY }}/\\\${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
           
-      - name: Build and push
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
-          tags: latest
+          platforms: linux/amd64,linux/arm64
+          push: \\\${{ github.event_name != 'pull_request' }}
+          tags: \\\${{ steps.meta.outputs.tags }}
+          labels: \\\${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-\`\`\`
+          build-args: |
+            BUILD_DATE=\\\${{ steps.meta.outputs.created }}
+            VERSION=\\\${{ steps.meta.outputs.version }}
+            
+      - name: Run Trivy security scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: \\\${{ env.REGISTRY }}/\\\${{ env.IMAGE_NAME }}:latest
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+\\\`\\\`\\\`
 
-## 5. Status Badge
+## 5. Cache Dependencies
 
-Thêm badge vào README.md:
+### Cache npm packages
 
-\`\`\`markdown
-# My Project
+\\\`\\\`\\\`yaml
+  - name: Cache node modules
+    uses: actions/cache@v4
+    with:
+      path: ~/.npm
+      key: \\\${{ runner.os }}-node-\\\${{ hashFiles('**/package-lock.json') }}
+      restore-keys: |
+        \\\${{ runner.os }}-node-
+        
+  - name: Install dependencies
+    run: npm ci
+\\\`\\\`\\\`
 
-![CI/CD](https://github.com/username/repo/actions/workflows/ci.yml/badge.svg)
-\`\`\`
+### Cache Docker layers
 
-## 6. Best Practices
+\\\`\\\`\\\`yaml
+  - name: Build with cache
+    uses: docker/build-push-action@v5
+    with:
+      cache-from: type=gha
+      cache-to: type=gha,mode=max
+\\\`\\\`\\\`
 
-### Tối ưu Performance
+## 6. Notifications
 
-1. **Cache dependencies**: Sử dụng actions/cache
-2. **Parallel jobs**: Tách jobs độc lập để chạy song song
-3. **Conditional execution**: Dùng if để skip jobs không cần thiết
-4. **Tái sử dụng artifacts**: Download thay vì rebuild
+### Slack Notification
 
-### Security
+\\\`\\\`\\\`yaml
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: always()
+    
+    steps:
+      - name: Slack Notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: \\\${{ job.status }}
+          text: |
+            Deploy to production \\\${{ job.status }}
+            Author: \\\${{ github.actor }}
+            Commit: \\\${{ github.event.head_commit.message }}
+          webhook_url: \\\${{ secrets.SLACK_WEBHOOK }}
+        if: always()
+\\\`\\\`\\\`
 
-1. **Least privilege**: Chỉ cấp permissions cần thiết
-2. **Pin action versions**: Dùng SHA thay vì tag
-3. **Rotate secrets**: Đổi secrets định kỳ
-4. **Audit logs**: Review workflow runs thường xuyên
+## 7. Reusable Workflows
+
+### Tạo Reusable Workflow
+
+File: \`.github/workflows/reusable-build.yml\`
+
+\\\`\\\`\\\`yaml
+name: Reusable Build Workflow
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+    secrets:
+      api-key:
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: \\\${{ inputs.environment }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: \\\${{ inputs.node-version }}
+          
+      - name: Build
+        run: npm run build
+        env:
+          API_KEY: \\\${{ secrets.api-key }}
+\\\`\\\`\\\`
+
+### Sử dụng Reusable Workflow
+
+\\\`\\\`\\\`yaml
+name: Main CI/CD
+
+on: [push, pull_request]
+
+jobs:
+  call-build:
+    uses: ./.github/workflows/reusable-build.yml
+    with:
+      node-version: '20'
+      environment: 'production'
+    secrets:
+      api-key: \\\${{ secrets.API_KEY }}
+\\\`\\\`\\\`
+
+## 8. Status Badges
+
+### Thêm badges vào README.md
+
+\\\`\\\`\\\`markdown
+# My Awesome Project
+
+![CI/CD Pipeline](https://github.com/username/repo/actions/workflows/ci.yml/badge.svg)
+![Docker Build](https://github.com/username/repo/actions/workflows/docker.yml/badge.svg)
+![Code Coverage](https://codecov.io/gh/username/repo/branch/main/graph/badge.svg)
+![License](https://img.shields.io/github/license/username/repo)
+![Version](https://img.shields.io/github/v/release/username/repo)
+\\\`\\\`\\\`
+
+## 9. Advanced Patterns
+
+### Conditional Jobs
+
+\\\`\\\`\\\`yaml
+  deploy:
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      !contains(github.event.head_commit.message, '[skip ci]')
+\\\`\\\`\\\`
+
+### Job Outputs
+
+\\\`\\\`\\\`yaml
+jobs:
+  build:
+    outputs:
+      version: \\\${{ steps.version.outputs.value }}
+    steps:
+      - id: version
+        run: echo "value=1.0.0" >> $GITHUB_OUTPUT
+        
+  deploy:
+    needs: build
+    steps:
+      - run: echo "Deploying version \\\${{ needs.build.outputs.version }}"
+\\\`\\\`\\\`
+
+### Matrix với exclude
+
+\\\`\\\`\\\`yaml
+strategy:
+  matrix:
+    os: [ubuntu-latest, windows-latest, macos-latest]
+    node: [18, 20, 22]
+    exclude:
+      - os: macos-latest
+        node: 18
+      - os: windows-latest
+        node: 22
+\\\`\\\`\\\`
+
+## 10. Best Practices
+
+### Performance Optimization
+
+1. **Cache aggressively**: Cache dependencies, build outputs, Docker layers
+2. **Run jobs in parallel**: Sử dụng needs để tạo dependency graph tối ưu
+3. **Skip unnecessary jobs**: Dùng if conditions và path filters
+4. **Use artifacts wisely**: Chỉ upload artifacts cần thiết, set retention days hợp lý
+
+\\\`\\\`\\\`yaml
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'package*.json'
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+\\\`\\\`\\\`
+
+### Security Best Practices
+
+1. **Pin action versions**: Dùng commit SHA thay vì tags
+
+\\\`\\\`\\\`yaml
+# ❌ Không an toàn
+- uses: actions/checkout@v4
+
+# ✅ An toàn hơn  
+- uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+\\\`\\\`\\\`
+
+2. **Least privilege principle**: Chỉ grant permissions cần thiết
+
+\\\`\\\`\\\`yaml
+permissions:
+  contents: read
+  packages: write
+  pull-requests: write
+\\\`\\\`\\\`
+
+3. **Use environment protection rules**: Required reviewers cho production
+4. **Rotate secrets regularly**: Thay đổi tokens/keys định kỳ
+5. **Scan for vulnerabilities**: Sử dụng Dependabot, Trivy, Snyk
+
+### Debugging Tips
+
+1. **Enable debug logging**:
+   - Thêm secret ACTIONS_STEP_DEBUG = true
+   - Thêm secret ACTIONS_RUNNER_DEBUG = true
+
+2. **Use tmate for SSH debugging**:
+
+\\\`\\\`\\\`yaml
+- name: Setup tmate session
+  uses: mxschmitt/action-tmate@v3
+  if: failure()
+\\\`\\\`\\\`
+
+3. **Check workflow syntax**: Sử dụng GitHub CLI
+
+\\\`\\\`\\\`bash
+gh workflow view ci.yml
+\\\`\\\`\\\`
+
+### Cost Optimization
+
+1. **Sử dụng self-hosted runners** cho workloads lớn
+2. **Set timeout** cho jobs để tránh chạy mãi
+
+\\\`\\\`\\\`yaml
+jobs:
+  build:
+    timeout-minutes: 30
+\\\`\\\`\\\`
+
+3. **Clean up artifacts**: Xóa artifacts cũ không cần thiết
+4. **Monitor usage**: Check Actions usage trong Settings > Billing
 
 ## Kết luận
 
-GitHub Actions là công cụ mạnh mẽ để tự động hóa CI/CD. Bắt đầu với workflow đơn giản, sau đó mở rộng dần. Hãy tận dụng cache, matrix builds, và reusable workflows để tối ưu pipeline của bạn.
+GitHub Actions là công cụ CI/CD mạnh mẽ và linh hoạt. Các điểm chính cần nhớ:
+
+- Bắt đầu đơn giản với lint, test, build cơ bản
+- Tận dụng cache và parallel jobs để tối ưu thời gian
+- Sử dụng matrix builds để test trên nhiều môi trường
+- Implement proper security với secrets và environments
+- Sử dụng reusable workflows để tránh duplicate code
+- Monitor và optimize costs thường xuyên
+- Luôn test workflows trên branches trước khi merge
+
+Hãy thực hành với project nhỏ trước, sau đó áp dụng vào production với đầy đủ monitoring và alerting!
     `
   },
   {
