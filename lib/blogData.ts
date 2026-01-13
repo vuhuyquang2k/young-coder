@@ -488,7 +488,7 @@ React Hooks là công cụ mạnh mẽ giúp viết React code hiệu quả hơn
     title: 'Spring Boot Microservices với Docker',
     excerpt: 'Hướng dẫn chi tiết triển khai kiến trúc microservices với Spring Boot, Docker và các best practices.',
     category: 'Spring Boot',
-    date: '28/12/2025',
+    date: '28/12/2024',
     readTime: '25 phút đọc',
     image: 'https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=800&h=400&fit=crop',
     tags: ['Spring Boot', 'Docker', 'Microservices'],
@@ -543,7 +543,7 @@ microservices-demo/
 
 ## 2. Discovery Server với Eureka
 
-Service Discovery cho phép các service tìm thấy nhau mà không cần hardcode địa chỉ.
+Service Discovery cho phép các service tự động tìm thấy nhau mà không cần hardcode địa chỉ IP.
 
 ### pom.xml
 
@@ -760,7 +760,60 @@ public class UserController {
 }
 \`\`\`
 
-## 4. Dockerfile tối ưu
+## 4. API Gateway với Spring Cloud Gateway
+
+API Gateway là điểm vào duy nhất cho client, routing requests đến các services tương ứng.
+
+### pom.xml
+
+\`\`\`xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-gateway</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+\`\`\`
+
+### application.yml
+
+\`\`\`yaml
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - RewritePath=/api/users/(?<segment>.*), /api/users/$\{segment}
+        
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/api/orders/**
+          filters:
+            - RewritePath=/api/orders/(?<segment>.*), /api/orders/$\{segment}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/
+\`\`\`
+
+## 5. Dockerfile tối ưu
 
 ### Multi-stage Build
 
@@ -798,7 +851,7 @@ HEALTHCHECK --interval=30s --timeout=3s \\
 ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
 \`\`\`
 
-## 5. Docker Compose
+## 6. Docker Compose
 
 ### docker-compose.yml
 
@@ -860,10 +913,11 @@ services:
 
   user-service:
     build: ./user-service
-    container_name: user-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/microservices_db
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root123
     depends_on:
       mysql:
         condition: service_healthy
@@ -876,7 +930,6 @@ services:
 
   order-service:
     build: ./order-service
-    container_name: order-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
@@ -895,7 +948,7 @@ volumes:
   mysql_data:
 \`\`\`
 
-## 6. Inter-Service Communication
+## 7. Inter-Service Communication
 
 ### Sử dụng OpenFeign
 
@@ -931,7 +984,74 @@ public class UserClientFallback implements UserClient {
 }
 \`\`\`
 
-## 7. Chạy và Test
+### Sử dụng trong Order Service
+
+\`\`\`java
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class OrderService {
+    
+    private final OrderRepository orderRepository;
+    private final UserClient userClient;
+    
+    public OrderResponse createOrder(CreateOrderRequest request) {
+        // Verify user exists
+        UserResponse user = userClient.getUserById(request.getUserId());
+        
+        Order order = Order.builder()
+            .userId(request.getUserId())
+            .totalAmount(request.getTotalAmount())
+            .status(OrderStatus.PENDING)
+            .build();
+        
+        Order savedOrder = orderRepository.save(order);
+        log.info("Created order {} for user {}", savedOrder.getId(), user.getFullName());
+        
+        return orderMapper.toResponse(savedOrder);
+    }
+}
+\`\`\`
+
+## 8. Configuration Management
+
+### application.yml cho từng profile
+
+**application.yml (default)**
+\`\`\`yaml
+spring:
+  application:
+    name: user-service
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+\`\`\`
+
+**application-docker.yml**
+\`\`\`yaml
+spring:
+  datasource:
+    url: jdbc:mysql://mysql:3306/microservices_db
+    username: root
+    password: root123
+  jpa:
+    show-sql: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/
+  instance:
+    prefer-ip-address: true
+\`\`\`
+
+## 9. Chạy và Test
 
 ### Build và chạy
 
@@ -943,16 +1063,22 @@ docker-compose build
 docker-compose up -d
 
 # Xem logs
-docker-compose logs -f
+docker-compose logs -f user-service
 
 # Scale user-service
 docker-compose up -d --scale user-service=3
 
+# Kiểm tra services đang chạy
+docker-compose ps
+
 # Dừng
 docker-compose down
+
+# Dừng và xóa volumes
+docker-compose down -v
 \`\`\`
 
-### Test API
+### Test API qua Gateway
 
 \`\`\`bash
 # Tạo user
@@ -961,16 +1087,117 @@ curl -X POST http://localhost:8080/api/users \\
   -d '{
     "email": "test@example.com",
     "password": "password123",
-    "fullName": "Test User"
+    "fullName": "Test User",
+    "phone": "0123456789"
   }'
 
-# Lấy user
+# Lấy user theo ID
 curl http://localhost:8080/api/users/1
+
+# Lấy danh sách users
+curl "http://localhost:8080/api/users?page=0&size=10"
+
+# Cập nhật user
+curl -X PUT http://localhost:8080/api/users/1 \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "fullName": "Updated Name",
+    "phone": "0987654321"
+  }'
+
+# Xóa user
+curl -X DELETE http://localhost:8080/api/users/1
+\`\`\`
+
+### Kiểm tra Eureka Dashboard
+
+Truy cập http://localhost:8761 để xem các services đã đăng ký.
+
+## 10. Best Practices
+
+### Logging với Correlation ID
+
+\`\`\`java
+@Component
+public class CorrelationIdFilter extends OncePerRequestFilter {
+    
+    private static final String CORRELATION_ID_HEADER = "X-Correlation-ID";
+    
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, 
+                                   HttpServletResponse response, 
+                                   FilterChain filterChain) throws ServletException, IOException {
+        String correlationId = request.getHeader(CORRELATION_ID_HEADER);
+        if (correlationId == null) {
+            correlationId = UUID.randomUUID().toString();
+        }
+        
+        MDC.put("correlationId", correlationId);
+        response.setHeader(CORRELATION_ID_HEADER, correlationId);
+        
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            MDC.remove("correlationId");
+        }
+    }
+}
+\`\`\`
+
+### Circuit Breaker với Resilience4j
+
+\`\`\`java
+@Service
+@RequiredArgsConstructor
+public class OrderService {
+    
+    private final UserClient userClient;
+    
+    @CircuitBreaker(name = "userService", fallbackMethod = "getUserFallback")
+    @Retry(name = "userService")
+    public UserResponse getUser(Long userId) {
+        return userClient.getUserById(userId);
+    }
+    
+    private UserResponse getUserFallback(Long userId, Exception ex) {
+        log.error("Fallback for user {}: {}", userId, ex.getMessage());
+        return UserResponse.builder()
+            .id(userId)
+            .fullName("Unknown")
+            .build();
+    }
+}
+\`\`\`
+
+### Health Check cho từng service
+
+\`\`\`yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
 \`\`\`
 
 ## Kết luận
 
-Microservices với Spring Boot và Docker là sự kết hợp mạnh mẽ cho việc xây dựng hệ thống scalable. Hãy bắt đầu với kiến trúc đơn giản, sau đó mở rộng dần khi cần thiết. Đừng quên implement proper monitoring, logging, và security cho production environment.
+Microservices với Spring Boot và Docker mang lại khả năng mở rộng và bảo trì tốt cho hệ thống lớn. Các điểm quan trọng cần nhớ:
+
+- Bắt đầu đơn giản, không cần quá nhiều services ngay từ đầu
+- Implement service discovery để services tự động tìm thấy nhau
+- Sử dụng API Gateway làm điểm vào duy nhất
+- Áp dụng circuit breaker và retry để tăng độ ổn định
+- Logging với correlation ID để trace requests qua nhiều services
+- Health checks và monitoring là bắt buộc cho production
+- Sử dụng Docker Compose cho development, Kubernetes cho production
+
+Hãy thực hành triển khai từng phần một và test kỹ trước khi đưa vào môi trường production!
     `
   },
   {
