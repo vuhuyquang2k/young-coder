@@ -64,7 +64,7 @@ export default function Contact() {
 
     const contactLinks = [
         { href: 'mailto:quangvh.technical@gmail.com', icon: <EmailIcon />, label: 'quangvh.technical@gmail.com', color: '#EA4335' },
-        { href: 'https://github.com/vuhuyquang2k', icon: <GitHubIcon />, label: 'github.com/vuhuyquang2k', color: '#ffffff' },
+        { href: '#', icon: <GitHubIcon />, label: 'GitHub (Coming soon)', color: '#ffffff' },
         { href: '#', icon: <LinkedInIcon />, label: 'LinkedIn (Coming soon)', color: '#0A66C2' },
         { href: 'https://zalo.me/0344396798', icon: <ZaloIcon />, label: 'Zalo: 0344396798', color: '#0068FF' },
     ];
